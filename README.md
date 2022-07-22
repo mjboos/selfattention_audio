@@ -136,7 +136,7 @@ def make_video_for_samples(attentions, features, vmin=None, vmax=None, interval=
 anim = make_video_for_samples(attention[170:270], test_data.features[170:270])
 ```
 
-<img src="http://mjboos.github.io/files/animation.gif" width="550" align="center">
+![](animation_attention.gif)
 
 
 ## How could this look like in your data?
