@@ -136,16 +136,13 @@ def make_video_for_samples(attentions, features, vmin=None, vmax=None, interval=
 anim = make_video_for_samples(attention[170:270], test_data.features[170:270])
 ```
 
-![](animation_attention.gif)
-
-
 ## How could this look like in your data?
 
 Now this was trained on some very small example data, so what happens if we train this model on a larger amount of data?
 
 This is an example of how results from actual audio/brain data can look like (brain activity is compressed in only 2 dimensions for visualization):
 
-<img src="http://mjboos.github.io/files/animation_attention_example.gif" width="550" align="center">
+![](animation_attention_19800.gif)
 
 A very simple heuristic to know what the model "pays attention to" is to identify parts of the stimulus to which attention is time-locked (e.g. attention assigns high weights even if this stimulus part is in the past) and compare it to parts of the stimulus that attention does not time-lock on:
 
