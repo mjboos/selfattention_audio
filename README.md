@@ -25,6 +25,7 @@ You can of course also install this via pip:
 
 ## An example analysis
 
+This analysis can also be found in `fit_model_example.py` (except that we also extract animated attention plots).
 ```python
 import numpy as np
 import torch

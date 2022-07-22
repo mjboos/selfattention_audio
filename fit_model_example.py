@@ -11,12 +11,6 @@ from typing import Mapping, Optional
 from numpy.typing import NDArray
 from matplotlib.figure import Figure
 
-# TODO: make installable
-# TODO: write tests
-# TODO: add other engineering garnishes
-# TODO: copy some model architecture plot from presentation
-
-
 # hard coded mel frequencies (for example data) so we don't need another dependency
 mel_freqs = np.array(
     [
