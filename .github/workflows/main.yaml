@@ -11,7 +11,7 @@ jobs:
         architecture: 'x64'
     - name: test
       run: |
-      pip install poetry
-      poetry install
-      poetry run poe autoinstall-torch-cuda
-      poetry run pytest --cov
+        pip install poetry
+        poetry install
+        poetry run poe autoinstall-torch-cuda
+        poetry run pytest
