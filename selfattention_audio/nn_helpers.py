@@ -7,28 +7,24 @@ from typing import Optional
 eps = 1e-7
 
 
-def bolster_single_arg(single_arg):
-    """Ensures that single_arg is a tuple containing a string, an iterable, and a dictionary in that order"""
-    assert isinstance(single_arg[0], str)
-    assert len(single_arg) >= 1
-    new_arg = (
-        single_arg[0],
-        ()
-        if len(single_arg) == 1 or isinstance(single_arg[1], dict)
-        else single_arg[1],
-        dict() if not isinstance(single_arg[-1], dict) else single_arg[-1],
-    )
-    return new_arg
+def compute_attention_weights(logits: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
+    """Computes attention weights from logits by normalizing and transforming onto 0 to 1 interval.
 
-
-def bolster_args(nn_arg_list):
-    """Bolsters all elements in nn_arg_list"""
-    return [bolster_single_arg(single_arg) for single_arg in nn_arg_list]
-
+    :param logits: tensor of logits of shape (batch_size, sequence_steps)
+    :type logits: torch.Tensor
+    :param eps: system error, defaults to 1e-7
+    :type eps: float, optional
+    :return: tensor of attention weights in interval (0,1) of dimension (batch_size, sequence_steps)
+    :rtype: torch.Tensor
+    """
+    ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
+    att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+    return att_weights
 
 class GRU_with_attention(nn.Module):
     """A Gated Recurring Unit (GRU) model with attention weighting applied to the last layer to compress all hidden states into a single tensor.
     This tensor is transformed to predict the target via `post_gru_seq` (which can be any torch Sequential object)."""
+
     def __init__(
         self,
         input_size: int = 31,
@@ -78,10 +74,8 @@ class GRU_with_attention(nn.Module):
         x, hn = self.gru(x)
         # x is (batch, seq, hidden)
         logits = self.att(x)
-        ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-        att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
-        x = x * att_weights
-        x = x.sum(dim=1)
+        att_weights = compute_attention_weights(logits)
+        x = (x * att_weights).sum(dim=1)
         x = self.post_gru(x)
         return x
 
@@ -164,6 +158,7 @@ class GRU_with_concat_attention_per_target(nn.Module):
     """A Gated Recurring Unit (GRU) model with attention weighting to compress all hidden states into a single tensor.
     Hidden states are concatenated across layers and attention weighting applied to these concatenated states to produce a single tensor.
     This tensor is transformed to predict the target via `post_gru_seq` (which can be any torch Sequential object)."""
+
     def __init__(
         self,
         input_size: int = 31,
@@ -217,17 +212,16 @@ class GRU_with_concat_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay in self.att_layers:
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append((x * att_weights).sum(dim=1))
         x = self.post_gru(torch.cat(x_tmp, dim=-1))
         return x
 
 
-
 class CNN_GRU_with_multihead_attention_per_target(nn.Module):
     """Applies a convolutional layer to each time step of the spectrogram then runs a GRU across the such-transformed steps.
     Finally applies multi-head attention to the hidden states of the last layer of the GRU and maps them via a final transformation to the targets."""
+
     def __init__(
         self,
         cnn=None,
@@ -241,7 +235,6 @@ class CNN_GRU_with_multihead_attention_per_target(nn.Module):
         batch_first=True,
         seq_len=25,
         n_targets=2,
-        
         **kwargs
     ):
         super(CNN_GRU_with_multihead_attention_per_target, self).__init__()
@@ -289,8 +282,7 @@ class CNN_GRU_with_multihead_attention_per_target(nn.Module):
         # x is now (n_att, batch, seq, d_mh)
         for x_att, att_lay in zip(x, self.att_layers):
             logits = att_lay(x_att)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append((x_att * att_weights).sum(dim=1))
         x = torch.cat(x_tmp, dim=-1)
         x = self.post_gru(torch.cat(x_tmp, dim=-1))
@@ -300,6 +292,7 @@ class CNN_GRU_with_multihead_attention_per_target(nn.Module):
 class CNN_GRU_with_shared_attention_per_target(nn.Module):
     """Applies a convolutional layer to each time step of the spectrogram then runs a GRU across the such-transformed steps.
     Finally applies attention to the hidden states of the last layer of the GRU and maps them via a final transformation to the targets."""
+
     def __init__(
         self,
         cnn=None,
@@ -350,8 +343,7 @@ class CNN_GRU_with_shared_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay in self.att_layers:
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append((x * att_weights).sum(dim=1))
         x = self.post_gru(torch.cat(x_tmp, dim=-1))
         return x
@@ -361,6 +353,7 @@ class GRU_with_shared_attention_per_target(nn.Module):
     """A Gated Recurring Unit (GRU) model with attention weighting applied to the last layer to compress all hidden states into a single tensor.
     There are as many attention layers as there are targets, yet the resulting multiple compressed hidden states are shared (i.e. concatenated) to predict targets.
     This tensor is transformed to predict the target via `post_gru_seq` (which can be any torch Sequential object)."""
+
     def __init__(
         self,
         input_size: int = 31,
@@ -414,12 +407,10 @@ class GRU_with_shared_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay in self.att_layers:
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append((x * att_weights).sum(dim=1))
         x = self.post_gru(torch.cat(x_tmp, dim=-1))
         return x
-
 
 
 class GRU_with_attention_per_target(nn.Module):
@@ -427,6 +418,7 @@ class GRU_with_attention_per_target(nn.Module):
     There are as many attention layers as there are targets and the resulting weighted tensor is kept separate,
     i.e. each attention layer compresses the hidden states of the last layer into a single tensor which is used to predict a single target (and such for each target/attention layer).
     Each weighted hidden state tensor is transformed to predict the target via `post_gru_seq` (which can be any torch Sequential object)."""
+
     def __init__(
         self,
         input_size: int = 31,
@@ -487,7 +479,6 @@ class GRU_with_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay, lin_layer in zip(self.att_layers, self.lin_layers):
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append(lin_layer((x * att_weights).sum(dim=1)))
         return torch.cat(x_tmp, dim=-1)

@@ -1,7 +1,7 @@
 import torch
 import copy
 import torch.nn as nn
-from .nn_helpers import SimpleCNN
+from selfattention_audio.nn_helpers import SimpleCNN
 
 eps = 1e-7
 
