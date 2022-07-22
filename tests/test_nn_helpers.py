@@ -1,5 +1,6 @@
 from selfattention_audio import nn_helpers as nhelp
 import torch
+import pytest
 
 
 def test_compute_attention_weights() -> None:

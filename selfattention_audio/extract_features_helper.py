@@ -1,7 +1,7 @@
 import torch
 import copy
 import torch.nn as nn
-from selfattention_audio.nn_helpers import SimpleCNN
+from selfattention_audio.nn_helpers import SimpleCNN, compute_attention_weights
 
 eps = 1e-7
 
@@ -29,7 +29,7 @@ class ExtractSimpleCNN(nn.Module):
         return self.layers.forward(x)
 
 
-class Extract_CNN_GRU_with_multihead_attention_per_target(nn.Module):
+class ExtractCNN_GRU_with_multihead_attention_per_target(nn.Module):
     """Class to extract computed attention for each hidden state.
     Should be initialized with the same parameters as the original model
     and its state should be set to the learned weights of the original model.
@@ -50,7 +50,7 @@ class Extract_CNN_GRU_with_multihead_attention_per_target(nn.Module):
         n_targets=2,
         **kwargs
     ):
-        super(Extract_CNN_GRU_with_multihead_attention_per_target, self).__init__()
+        super(ExtractCNN_GRU_with_multihead_attention_per_target, self).__init__()
         if cnn is None:
             self.cnn = nn.Sequential(
                 nn.Conv2d(1, 100, (3, 3), padding=(1, 1)),
@@ -95,13 +95,12 @@ class Extract_CNN_GRU_with_multihead_attention_per_target(nn.Module):
         # x is now (n_att, batch, seq, d_mh)
         for x_att, att_lay in zip(x, self.att_layers):
             logits = att_lay(x_att)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append(att_weights)
         return torch.stack(x_tmp)
 
 
-class Extract_CNN_GRU_with_shared_attention_per_target(nn.Module):
+class ExtractCNN_GRU_with_shared_attention_per_target(nn.Module):
     """Class to extract computed attention for each hidden state.
     Should be initialized with the same parameters as the original model
     and its state should be set to the learned weights of the original model.
@@ -122,7 +121,7 @@ class Extract_CNN_GRU_with_shared_attention_per_target(nn.Module):
         n_targets=2,
         **kwargs
     ):
-        super(Extract_CNN_GRU_with_shared_attention_per_target, self).__init__()
+        super(ExtractCNN_GRU_with_shared_attention_per_target, self).__init__()
         if cnn is None:
             self.cnn = nn.Sequential(
                 nn.Conv2d(1, 100, (3, 3), padding=(1, 1)),
@@ -157,8 +156,7 @@ class Extract_CNN_GRU_with_shared_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay in self.att_layers:
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append(att_weights)
         return torch.stack(x_tmp)
 
@@ -195,7 +193,7 @@ class ExtractGRU_with_shared_attention_per_target(nn.Module):
             [nn.Linear(hidden_size, 1, bias=True) for _ in range(n_targets)]
         )
         if post_gru_seq is None:
-            self.post_gru = nn.Sequential(nn.Linear(hidden_size, 10), nn.Linear(10, 1))
+            self.post_gru = nn.Sequential(nn.Linear(n_targets * hidden_size, n_targets))
         else:
             self.post_gru = post_gru_seq
 
@@ -204,8 +202,7 @@ class ExtractGRU_with_shared_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay in self.att_layers:
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append(att_weights)
         return torch.stack(x_tmp)
 
@@ -251,10 +248,9 @@ class ExtractHiddenGRU_with_shared_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay in self.att_layers:
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
-            x_tmp.append((x * att_weights).sum(dim=1))
-        return torch.cat(x_tmp, dim=-1)
+            att_weights = compute_attention_weights(logits)
+            x_tmp.append(att_weights)
+        return torch.stack(x_tmp)
 
 
 class ExtractGRU_with_attention_per_target(nn.Module):
@@ -305,8 +301,7 @@ class ExtractGRU_with_attention_per_target(nn.Module):
         x_tmp = []
         for att_lay in self.att_layers:
             logits = att_lay(x)
-            ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-            att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+            att_weights = compute_attention_weights(logits)
             x_tmp.append(att_weights)
         return torch.stack(x_tmp)
 
@@ -327,7 +322,6 @@ class ExtractGRU_with_attention(nn.Module):
         post_gru_seq=None,
         batch_first=True,
         n_targets=2,
-        seq_len=25,
         **kwargs
     ):
         super(ExtractGRU_with_attention, self).__init__()
@@ -349,8 +343,7 @@ class ExtractGRU_with_attention(nn.Module):
         x, hn = self.gru(x)
         # x is (batch, seq, hidden)
         logits = self.att(x)
-        ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-        att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+        att_weights = compute_attention_weights(logits)
         return att_weights
 
 
@@ -369,7 +362,6 @@ class ExtractGRU_attention_linear_encoding_split(nn.Module):
         bidirectional=False,
         post_gru_seq=None,
         batch_first=True,
-        seq_len=25,
         n_targets=2,
         n_patterns=20,
         n_window=5,
@@ -402,8 +394,7 @@ class ExtractGRU_attention_linear_encoding_split(nn.Module):
         h, hn = self.gru(torch.squeeze(x))
         # x is (batch, seq, hidden)
         logits = self.att_layer(h[:, self.n_window - 1 :])
-        ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-        att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+        att_weights = compute_attention_weights(logits)
         # attention weights should be (sequence - n_window + 1)
         x = torch.squeeze(self.pattern_layer(x))
         # x is now (batch, n_patterns, sequence - n_window + 1)
@@ -458,8 +449,7 @@ class ExtractGRU_attention_max_linear_encoding_split(nn.Module):
         h, hn = self.gru(torch.squeeze(x))
         # x is (batch, seq, hidden)
         logits = self.att_layer(h[:, self.n_window - 1 :])
-        ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
-        att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
+        att_weights = compute_attention_weights(logits)
         # attention weights should be (sequence - n_window + 1)
         x = torch.squeeze(self.pattern_layer(x))
         # x is now (batch, n_patterns, sequence - n_window + 1)
