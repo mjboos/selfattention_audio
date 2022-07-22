@@ -1,5 +1,7 @@
 # Using a self-attention based encoding model to predict brain activitiy from audio data
 
+![](https://github.com/mjboos/selfattention_audio/workflows/CI/badge.svg)
+
 Do you like deep learning-based auditory encoding models?
 Always wanted to train a deep recurrent model to predict brain activity from an auditory stimulus (i.e. spectrogram)?
 Also interested in gaining some *interpretability* of whatever is learned by such a model in terms of the parts of the spectrogram that are important?
