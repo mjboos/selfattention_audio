@@ -7,6 +7,9 @@ Also interested in gaining some *interpretability* of whatever is learned by suc
 This library allows you to train a recurrent DNN (a GRU) and then learns a self-attention mechanism that weighs hidden states - the resulting weighted tensor is used to predict brain activity (or whatever you choose as a target).
 It also contains many variations of this model type (CNN + GRU + attention, shared attention between targets, multi-head attention etc) and some functions for visualizing the computed attention weights on a spectrogram.
 
+The general gist is captured in this schematic:
+<img src="gru_attention_model.png" alt="attention model" width="800"/>
+
 It's old-ish research code, so use at your own risk, but trained on a sufficiently large audio/brain dataset (I didn't explore the lower limit, but probably doesn't work below 30mins or so - depends on your Signal-to-Noise Ratio of course) it gives some interesting results - essentially uncovering that to predict brain activity from audio data well, we need some time invariance and "pay attention" (pun intended) to certain parts of the spectrogram (somewhat) independently from *when* they appear.
 
 ## How to install
