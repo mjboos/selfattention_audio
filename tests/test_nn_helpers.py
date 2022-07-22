@@ -11,5 +11,4 @@ def test_compute_attention_weights() -> None:
     logits = (x * learned_weights).sum(dim=-1)
     weights = nhelp.compute_attention_weights(logits)
     assert torch.isclose(weights.sum(), torch.tensor(1.0))
-    assert torch.argmax(weights) == 10
     assert weights.min() >= 0 and weights.max() <= 1
