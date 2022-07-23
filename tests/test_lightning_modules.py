@@ -9,10 +9,6 @@ from selfattention_audio import nn_helpers as nhelp
 
 models_to_test = [
     "GRU_with_attention",
-    "GRU_with_shared_attention_per_target",
-    "GRU_with_attention_per_target",
-    "SimpleGRU",
-    "GRU_with_concat_attention_per_target",
 ]
 
 
