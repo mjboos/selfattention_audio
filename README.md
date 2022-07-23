@@ -3,8 +3,8 @@
 ![](https://github.com/mjboos/selfattention_audio/workflows/CI/badge.svg)
 
 Do you like deep learning-based auditory encoding models?
-Always wanted to train a deep recurrent model to predict brain activity from an auditory stimulus (i.e. spectrogram)?
-Also interested in gaining some *interpretability* of whatever is learned by such a model in terms of the parts of the spectrogram that are important?
+Always wanted to train a deep recurrent model to predict brain activity from an auditory stimulus (i.e. spectrogram) but vanilla GRU/LSTM/RNN immediately overfit?
+Are you also interested in gaining some *interpretability* of whatever is learned by such a model in terms of the parts of the spectrogram that matter for predicting?
 
 This library allows you to train a recurrent DNN (a GRU) and then learns a self-attention mechanism that weighs hidden states - the resulting weighted tensor is used to predict brain activity (or whatever you choose as a target).
 It also contains many variations of this model type (CNN + GRU + attention, shared attention between targets, multi-head attention etc) and some functions for visualizing the computed attention weights on a spectrogram.
@@ -12,7 +12,7 @@ It also contains many variations of this model type (CNN + GRU + attention, shar
 The general gist is captured in this schematic:
 <img src="gru_attention_model.png" alt="attention model" width="800"/>
 
-It's old-ish research code, so use at your own risk, but trained on a sufficiently large audio/brain dataset (I didn't explore the lower limit, but probably doesn't work below 30mins or so - depends on your Signal-to-Noise Ratio of course) it gives some interesting results - essentially uncovering that to predict brain activity from audio data well, we need some time invariance and "pay attention" (pun intended) to certain parts of the spectrogram (somewhat) independently from *when* they appear.
+Trained on a sufficiently large audio/brain dataset (I didn't explore the lower limit) it gives some interesting results - essentially uncovering that to predict brain activity from audio data well, we need some time invariance and "pay attention" (pun intended) to certain parts of the spectrogram (somewhat) independently from *when* they appear.
 
 ## How to install
 
@@ -114,7 +114,7 @@ If the data in your test features are contiguous in time, one nice visualization
 ```python
 def make_video_for_samples(attentions, features, vmin=None, vmax=None, interval=30):
     """Creates an animation for showing how attention develops over the features
-    
+
     Attentions need to be a (sample, time_steps) array
     Features a (samples, time_steps, frequencies) array"""
     from matplotlib.animation import FuncAnimation
