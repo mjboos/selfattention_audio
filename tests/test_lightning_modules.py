@@ -1,12 +1,11 @@
 import pytest
 import torch
-
-from selfattention_audio import nn_helpers as nhelp
-from selfattention_audio import lightning_modules as light
-from selfattention_audio import dataset_helpers as dhelp
-
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
+
+from selfattention_audio import dataset_helpers as dhelp
+from selfattention_audio import lightning_modules as light
+from selfattention_audio import nn_helpers as nhelp
 
 models_to_test = [
     "GRU_with_attention",
@@ -22,9 +21,13 @@ def test_training_procedure(model_class, full_data, tmp_saved_models_path) -> No
     datasets = [dhelp.AudioBrainDataset(*data) for data in full_data]
 
     model = getattr(nhelp, model_class)(input_size=datasets[0][0][0].shape[-1])
-    light_model = light.AuditoryEncodingLightning(datasets[0], datasets[1], datasets[2], model=model)
+    light_model = light.AuditoryEncodingLightning(
+        datasets[0], datasets[1], datasets[2], model=model
+    )
     initial_params = {
-        name: p.clone() for (name, p) in light_model.model.named_parameters() if p.requires_grad
+        name: p.clone()
+        for (name, p) in light_model.model.named_parameters()
+        if p.requires_grad
     }
 
     checkpoint_callback = ModelCheckpoint(
@@ -36,7 +39,9 @@ def test_training_procedure(model_class, full_data, tmp_saved_models_path) -> No
     trainer.fit(light_model)
 
     # now check for nans and inf - since a training step has already run
-    param_dict = {name: p for (name, p) in light_model.model.named_parameters() if p.requires_grad}
+    param_dict = {
+        name: p for (name, p) in light_model.model.named_parameters() if p.requires_grad
+    }
     for name, p in param_dict.items():
         assert not torch.any(torch.isinf(p))
         assert not torch.any(torch.isnan(p))

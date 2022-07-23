@@ -51,7 +51,7 @@ class AuditoryEncodingLightning(pl.LightningModule):
         :type lr: float, optional
         """
         super(AuditoryEncodingLightning, self).__init__(**kwargs)
-        self.model = nnhelp.SimpleCNN() if model is None else model
+        self.model = nnhelp.SimpleGRU() if model is None else model
         self.loss_func = nn.MSELoss() if loss_func is None else loss_func
         self.train_loader_args = {} if train_loader_args is None else train_loader_args
         self.test_loader_args = {} if test_loader_args is None else test_loader_args
