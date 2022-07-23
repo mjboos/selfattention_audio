@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 120
+ignore = E203, E266, E501, W503, F403, F401, D1, C812, D401, C815, C816
+import-order-style = smarkets"

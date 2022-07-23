@@ -1,8 +1,9 @@
-import torch
 import copy
+from typing import Optional
+
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional
 
 eps = 1e-7
 
@@ -20,6 +21,7 @@ def compute_attention_weights(logits: torch.Tensor, eps: float = 1e-7) -> torch.
     ai = torch.exp(logits - torch.max(logits, 1, keepdim=True)[0])
     att_weights = ai / (torch.sum(ai, dim=1, keepdim=True) + eps)
     return att_weights
+
 
 class GRU_with_attention(nn.Module):
     """A Gated Recurring Unit (GRU) model with attention weighting applied to the last layer to compress all hidden states into a single tensor.

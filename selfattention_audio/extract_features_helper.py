@@ -1,6 +1,8 @@
-import torch
 import copy
+
+import torch
 import torch.nn as nn
+
 from selfattention_audio.nn_helpers import SimpleCNN, compute_attention_weights
 
 eps = 1e-7

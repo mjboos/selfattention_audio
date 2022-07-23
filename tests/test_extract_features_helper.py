@@ -1,7 +1,8 @@
-from selfattention_audio import nn_helpers as nhelp
-from selfattention_audio import extract_features_helper as extr
-import torch
 import pytest
+import torch
+
+from selfattention_audio import extract_features_helper as extr
+from selfattention_audio import nn_helpers as nhelp
 
 models_to_test = [
     "GRU_with_attention",

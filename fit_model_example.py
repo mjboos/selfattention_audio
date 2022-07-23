@@ -1,15 +1,17 @@
+from typing import Mapping, Optional
+
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from selfattention_audio import dataset_helpers as dhelp
-from selfattention_audio import nn_helpers as nnhelp
-from selfattention_audio import lightning_modules as light
-from pytorch_lightning import Trainer
-from selfattention_audio import extract_features_helper as ext
-import matplotlib.pyplot as plt
-from torch.nn import Module
-from typing import Mapping, Optional
-from numpy.typing import NDArray
 from matplotlib.figure import Figure
+from numpy.typing import NDArray
+from pytorch_lightning import Trainer
+from torch.nn import Module
+
+from selfattention_audio import dataset_helpers as dhelp
+from selfattention_audio import extract_features_helper as ext
+from selfattention_audio import lightning_modules as light
+from selfattention_audio import nn_helpers as nnhelp
 
 # hard coded mel frequencies (for example data) so we don't need another dependency
 mel_freqs = np.array(
@@ -81,9 +83,7 @@ def plot_attention_with_specgram(
     spec_ax.set_xticklabels(["-500 ms", "-300 ms", "-100 ms"])
     spec_ax.set_ylabel("Frequencies in Hz")
     spec_ax.set_yticks([1, 5, 10, 15, 20, 25, 30])
-    spec_ax.set_yticklabels(
-        ["{}".format(fr) for fr in mel_freqs[[1, 5, 10, 15, 20, 25, 30]]]
-    )
+    spec_ax.set_yticklabels([f"{fr}" for fr in mel_freqs[[1, 5, 10, 15, 20, 25, 30]]])
     att_ax.plot(attention, c="k")
     att_ax.set_xticks([0, 10, 20])
     att_ax.set_xticklabels(["-500 ms", "-300 ms", "-100 ms"])
@@ -126,7 +126,7 @@ def create_lightning_model(
     :return: lightning model for running auditory encoding
     :rtype: light.AuditoryEncodingLightning
     """
-    loader_default_args = dict(batch_size=512, shuffle=True, num_workers=2)
+    loader_default_args = {"batch_size": 512, "shuffle": True, "num_workers": 2}
     train_loader_args = (
         loader_default_args if train_loader_args is None else train_loader_args
     )
@@ -164,8 +164,8 @@ def create_lightning_model(
 
 # fits example model with the same parameters that were used in later interpretability analysis
 if __name__ == "__main__":
-    from pytorch_lightning.callbacks import ModelCheckpoint
     import joblib
+    from pytorch_lightning.callbacks import ModelCheckpoint
 
     example_data = joblib.load("./tests/example_data.pkl")
     train_data, test_data, val_data = [
@@ -176,14 +176,14 @@ if __name__ == "__main__":
         )
         for split in ["train", "test", "val"]
     ]
-    model_params = dict(
-        hidden_size=150,
-        num_layers=2,
-        n_patterns=30,
-        n_window=5,
-        n_targets=2,
-        dropout=0.2,
-    )
+    model_params = {
+        "hidden_size": 150,
+        "num_layers": 2,
+        "n_patterns": 30,
+        "n_window": 5,
+        "n_targets": 2,
+        "dropout": 0.2,
+    }
 
     nn_model = nnhelp.GRU_with_attention(**model_params)
     model = create_lightning_model(train_data, test_data, val_data, nn_model=nn_model)

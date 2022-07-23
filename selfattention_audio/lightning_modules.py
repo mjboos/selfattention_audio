@@ -1,18 +1,22 @@
+from typing import Callable, Mapping, Optional
+
 import numpy as np
+import pytorch_lightning as pl
 import torch
 from torch import nn
-from torch.nn import functional as F
-import selfattention_audio.nn_helpers as nnhelp
-import selfattention_audio.dataset_helpers as dhelp
-import pytorch_lightning as pl
-from torch.tensor import Tensor
 from torch.nn import Module
-from typing import Callable, Optional, Mapping
+from torch.nn import functional as F
+from torch.tensor import Tensor
+
+import selfattention_audio.dataset_helpers as dhelp
+import selfattention_audio.nn_helpers as nnhelp
 
 LossFunc = Callable[[Tensor, Tensor], Tensor]
 
+
 class AuditoryEncodingLightning(pl.LightningModule):
     """An auditory encoding lightning model that simplifies training and validation."""
+
     def __init__(
         self,
         trainset: dhelp.AudioBrainDataset,
@@ -22,9 +26,9 @@ class AuditoryEncodingLightning(pl.LightningModule):
         train_loader_args: Optional[Mapping] = None,
         test_loader_args: Optional[Mapping] = None,
         val_loader_args: Optional[Mapping] = None,
-        loss_func: Optional[LossFunc]=None,
-        lr: float =3e-5,
-        **kwargs
+        loss_func: Optional[LossFunc] = None,
+        lr: float = 3e-5,
+        **kwargs,
     ):
         """
         :param trainset: dataset with training data
@@ -49,18 +53,16 @@ class AuditoryEncodingLightning(pl.LightningModule):
         super(AuditoryEncodingLightning, self).__init__(**kwargs)
         self.model = nnhelp.SimpleCNN() if model is None else model
         self.loss_func = nn.MSELoss() if loss_func is None else loss_func
-        self.train_loader_args = (
-            dict() if train_loader_args is None else train_loader_args
-        )
-        self.test_loader_args = dict() if test_loader_args is None else test_loader_args
-        self.val_loader_args = dict() if val_loader_args is None else val_loader_args
+        self.train_loader_args = {} if train_loader_args is None else train_loader_args
+        self.test_loader_args = {} if test_loader_args is None else test_loader_args
+        self.val_loader_args = {} if val_loader_args is None else val_loader_args
         self.trainset = trainset
         self.lr = lr
         self.testset = testset
         self.valset = valset
 
     def forward(self, x):
-            return self.model(x)
+        return self.model(x)
 
     def training_step(self, batch, batch_nb):
         # REQUIRED
@@ -80,7 +82,7 @@ class AuditoryEncodingLightning(pl.LightningModule):
         # OPTIONAL
         avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
         tensorboard_logs = {"val_loss": avg_loss}
-        print("Validation loss: {}".format(avg_loss))
+        print(f"Validation loss: {avg_loss}")
         return {"avg_val_loss": avg_loss, "log": tensorboard_logs}
 
     def configure_optimizers(self, **kwargs):

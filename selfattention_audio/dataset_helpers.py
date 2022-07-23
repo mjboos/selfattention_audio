@@ -1,18 +1,26 @@
+from typing import Callable, Optional, Tuple
+
 import torch
-from torch.utils.data import Dataset
 from numpy.typing import NDArray
-from typing import Optional, Callable, Tuple
+from torch.utils.data import Dataset
 
 TransformCallable = Callable[[NDArray, NDArray], Tuple[NDArray, NDArray]]
 
+
 class AudioBrainDataset(Dataset):
     """A dataset containing (lagged) audio features and neural activity of some kind."""
-    def __init__(self, audio_features: NDArray, brain_activity: NDArray, transform: Optional[TransformCallable]=None):
+
+    def __init__(
+        self,
+        audio_features: NDArray,
+        brain_activity: NDArray,
+        transform: Optional[TransformCallable] = None,
+    ):
         """A dataset class for deep encoding models.
 
         :param audio_features: array of shape (samples, time_steps, frequencies)
         :type audio_features: NDArray
-        :param brain_activity: array of shape (samples, brain_dimensions) 
+        :param brain_activity: array of shape (samples, brain_dimensions)
         :type brain_activity: NDArray
         :param transform: _description_, defaults to None
         :type transform: Optional[TransformCallable], optional

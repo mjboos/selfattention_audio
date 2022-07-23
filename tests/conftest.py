@@ -1,7 +1,8 @@
-import pytest
 from typing import Tuple
-from numpy.typing import NDArray
+
+import pytest
 import torch
+from numpy.typing import NDArray
 
 
 @pytest.fixture
