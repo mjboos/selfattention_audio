@@ -16,3 +16,5 @@ jobs:
         poetry run poe autoinstall-torch-cuda
         poetry run pre-commit run -a
         poetry run pytest --cov
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v1
