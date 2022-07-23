@@ -5,10 +5,10 @@
 
 Do you like deep learning-based auditory encoding models?
 Always wanted to train a deep recurrent model to predict brain activity from an auditory stimulus (i.e. spectrogram) but vanilla GRU/LSTM/RNN immediately overfit?
-Are you also interested in gaining some *interpretability* of whatever is learned by such a model in terms of the parts of the spectrogram that matter for predicting?
+Do you also care about which parts of the auditory stimulus matter most for predicting brain activity?
 
-This library allows you to train a recurrent DNN (a GRU) and then learns a self-attention mechanism that weighs hidden states - the resulting weighted tensor is used to predict brain activity (or whatever you choose as a target).
-It also contains many variations of this model type (CNN + GRU + attention, shared attention between targets, multi-head attention etc) and some functions for visualizing the computed attention weights on a spectrogram.
+This library allows you to train a recurrent DNN (a GRU) and learn a self-attention mechanism that weighs hidden states - the resulting weighted tensor is used to predict brain activity (or whatever you choose as a target).
+It also contains many variations of this model type (shared attention between targets, multi-head attention etc) and some functions for visualizing the computed attention weights on a spectrogram.
 
 The general idea is captured in this figure:
 
@@ -17,7 +17,7 @@ The general idea is captured in this figure:
 
 We start with a spectrogram (bottom image) of an auditory stimulus and want to predict a given time point in the neural signal (right image, the time point is marked with a cross). In this case, we want to use the spectrogram of the past 500ms of the auditory stimulus (the spectrogram extends from -500 ms to 0 ms) to predict the current time point in the neural signal (the cross is located at 0 ms).
 
-As a first step a [Recurrent Neural Network](https://en.wikipedia.org/wiki/Recurrent_neural_network) model processes a sequence of spectrogram "slices" (each `x` in the schematic) and produces hidden states for each time step (`h` in the schematic). Via self attention, each hidden state is assigned a weight (shown in the blue box with the attention scores as a line at the top). This allows us to create a weighted average of hidden states where the result is more strongly influenced by states with higher attention scores. Finally, this weighted average of hidden states is used to predict brain activity at the current time point (marked by the cross).
+As a first step, a [Recurrent Neural Network](https://en.wikipedia.org/wiki/Recurrent_neural_network) model processes a sequence of spectrogram "slices" (each `x` in the schematic) and produces hidden states for each time step (`h` in the schematic). Via self attention, each hidden state is assigned a weight (shown in the blue box with the attention scores as a line at the top). This allows us to create a weighted average of hidden states where the result is more strongly influenced by states with higher attention scores. Finally, this weighted average of hidden states is used to predict brain activity at the current time point (marked by the cross).
 
 Trained on a sufficiently large audio/brain dataset (I didn't explore the lower limit), it gives some interesting results - essentially uncovering that to predict brain activity from audio data well, we need some time invariance and "pay attention" (pun intended) to certain parts of the spectrogram (somewhat) independently from *when* they appear.
 
@@ -53,7 +53,7 @@ from fit_model_example import plot_attention_with_specgram, create_lightning_mod
 
 We can now train a simple example model, a [Gated Recurrent Unit](https://en.wikipedia.org/wiki/Gated_recurrent_unit) with attention applied to the hidden states of the last layer - this compresses all hidden states into one, which can be used to predict whatever brain activity one has recorded.
 
-As we will see later, one nice use of the attention weights is that they assign an importance to each part of the spectrogram, we thus gain some interpretability compared to other deep models.
+As we will see later, one nice use of the attention weights is that they assign an importance to each part of the spectrogram, we thus gain some interpretability compared to other deep models (to be clear: the interpretability comes from the fact that we know which hidden states matter more than others and can trace this back to the spectrogram).
 
 
 ```python
