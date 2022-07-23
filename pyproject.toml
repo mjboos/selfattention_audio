@@ -18,6 +18,8 @@ numba = "0.48"
 pytest = "^5.2"
 jupyter = "^1.0.0"
 pre-commit = "^2.20.0"
+torchtest = "^0.5"
+pytest-cov = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
