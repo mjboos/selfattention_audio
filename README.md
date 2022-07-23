@@ -10,7 +10,7 @@ This library allows you to train a recurrent DNN (a GRU) and then learns a self-
 It also contains many variations of this model type (CNN + GRU + attention, shared attention between targets, multi-head attention etc) and some functions for visualizing the computed attention weights on a spectrogram.
 
 The general gist is captured in this schematic:
-<img src="gru_attention_model.png" alt="attention model" width="800"/>
+<img src="example_analysis_files/gru_attention_model.png" alt="attention model" width="800"/>
 
 Trained on a sufficiently large audio/brain dataset (I didn't explore the lower limit) it gives some interesting results - essentially uncovering that to predict brain activity from audio data well, we need some time invariance and "pay attention" (pun intended) to certain parts of the spectrogram (somewhat) independently from *when* they appear.
 
@@ -148,11 +148,11 @@ Now this was trained on some very small example data, so what happens if we trai
 
 This is an example of how results from actual audio/brain data can look like (brain activity is compressed in only 2 dimensions for visualization):
 
-![](animation_attention_19800.gif)
+![](example_analysis_files/animation_attention_19800.gif)
 
 A very simple heuristic to know what the model "pays attention to" is to identify parts of the stimulus to which attention is time-locked (e.g. attention assigns high weights even if this stimulus part is in the past) and compare it to parts of the stimulus that attention does not time-lock on:
 
-<img src="http://mjboos.github.io/files/average_spec.png" width="550" align="center">
+![](example_analysis_files/average_spec.png)
 
 ## How to load your data
 
