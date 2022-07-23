@@ -15,4 +15,4 @@ jobs:
         poetry install
         poetry run poe autoinstall-torch-cuda
         poetry run pre-commit run -a
-        poetry run pytest
+        poetry run pytest --cov
